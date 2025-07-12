@@ -1,8 +1,6 @@
-screener dcf gordon growth model (crafted by gemini cli : NOT ME)
+screener dcf gordon growth model (crafted by gemini cli : <b>NOT ME</b>)
 
 
-run :
+run : `python script/process_all_stocks.py`
 
-python script/process_all_stocks.py
-
-final results : filtered_financial_analysis.txt
+final results : `filtered_financial_analysis.txt`
