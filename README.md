@@ -1,0 +1,1 @@
+screener dcf gordon growth model (crafted by gemini cli : NOT ME)
