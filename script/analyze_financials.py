@@ -1,9 +1,10 @@
 import pandas as pd
 import os
 import sys
+import argparse
 
-def analyze_ticker_financials(ticker_symbol):
-    ticker_dir = os.path.join("saham", ticker_symbol)
+def analyze_ticker_financials(ticker_symbol, base_dir="saham"):
+    ticker_dir = os.path.join(base_dir, ticker_symbol)
 
     balance_sheet_file = os.path.join(ticker_dir, f"{ticker_symbol}_balance_sheet.csv")
     financials_file = os.path.join(ticker_dir, f"{ticker_symbol}_financials.csv")
@@ -129,6 +130,10 @@ def analyze_ticker_financials(ticker_symbol):
     return results
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Analyze financials of stocks from a filtered list.")
+    parser.add_argument("--dir", type=str, default="saham", help="Directory where ticker data is stored.")
+    args = parser.parse_args()
+
     filtered_dcf_results_file = "filtered_dcf_results.csv"
     output_file_path = "filtered_financial_analysis.txt"
 
@@ -148,7 +153,7 @@ if __name__ == "__main__":
 
     all_analysis_results = []
     for ticker in tickers_to_check:
-        all_analysis_results.append(analyze_ticker_financials(ticker))
+        all_analysis_results.append(analyze_ticker_financials(ticker, base_dir=args.dir))
 
     good_financial_stocks_details = []
     for result in all_analysis_results:
@@ -158,10 +163,10 @@ if __name__ == "__main__":
     with open(output_file_path, 'w') as f:
         f.write("--- Detail Analisis Keuangan Saham yang Lolos Screening ---\n")
         if good_financial_stocks_details:
-            f.write(f"{"Ticker":<8} {"DER < 1":<10} {"Laba Positif & Tumbuh":<25} {"FCF Non-Neg & Tumbuh":<25} {"DER Value":<12} {"Net Income Status":<30} {"FCF Status":<30}\n")
-            f.write(f"{"-"*8:<8} {"-"*10:<10} {"-"*25:<25} {"-"*25:<25} {"-"*12:<12} {"-"*30:<30} {"-"*30:<30}\n")
+            f.write(f'{"Ticker":<8} {"DER < 1":<10} {"Laba Positif & Tumbuh":<25} {"FCF Non-Neg & Tumbuh":<25} {"DER Value":<12} {"Net Income Status":<30} {"FCF Status":<30}\n')
+            f.write(f'{"-"*8:<8} {"-"*10:<10} {"-"*25:<25} {"-"*25:<25} {"-"*12:<12} {"-"*30:<30} {"-"*30:<30}\n')
             for result in good_financial_stocks_details:
-                f.write(f"{result["ticker"]:<8} {str(result["der_ok"]):<10} {str(result["profit_ok"]):<25} {str(result["fcf_ok"]):<25} {result["der_value"]:<12} {result["net_income_status"]:<30} {result["fcf_status"]:<30}\n")
+                f.write(f'{result["ticker"]:<8} {str(result["der_ok"]):<10} {str(result["profit_ok"]):<25} {str(result["fcf_ok"]):<25} {result["der_value"]:<12} {result["net_income_status"]:<30} {result["fcf_status"]:<30}\n')
         else:
             f.write("Tidak ada saham yang memenuhi semua kriteria keuangan yang bagus.\n")
 
@@ -169,7 +174,7 @@ if __name__ == "__main__":
         if good_financial_stocks_details:
             f.write("Saham dengan keuangan yang bagus berdasarkan semua kriteria:\n")
             for result in good_financial_stocks_details:
-                f.write(f"{result["ticker"]}\n")
+                f.write(f'{result["ticker"]}\n')
         else:
             f.write("Tidak ada saham yang memenuhi semua kriteria keuangan yang bagus.\n")
 

@@ -1,19 +1,18 @@
 import yfinance as yf
-import sys
+import argparse
 import pandas as pd
 from datetime import datetime
 import os
 
-# Check if a ticker symbol is provided as a command-line argument
-if len(sys.argv) < 2:
-    print("Usage: python get_fundamental_data.py <TICKER_SYMBOL>")
-    print("Example: python get_fundamental_data.py SIDO.JK")
-    sys.exit(1)
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Fetch fundamental and historical data for a stock ticker.')
+parser.add_argument('ticker_symbol', type=str, help='The ticker symbol of the stock (e.g., SIDO.JK)')
+parser.add_argument('--dir', type=str, default='saham', help='The base directory to save the output files.')
 
-ticker_symbol = sys.argv[1].upper() # Get the ticker symbol from the command line and convert to uppercase
-
-# Define the base output directory
-base_output_dir = "saham"
+# Parse command-line arguments
+args = parser.parse_args()
+ticker_symbol = args.ticker_symbol.upper()
+base_output_dir = args.dir
 
 # Define the output directory for the ticker
 output_dir = os.path.join(base_output_dir, ticker_symbol)

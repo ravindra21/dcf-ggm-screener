@@ -1,14 +1,10 @@
 import pandas as pd
-import sys
+import argparse
 import os
 from datetime import datetime
 
 
-def calculate_dcf(ticker_symbol):
-    discount_rate = 0.10  # 10%
-    terminal_growth_rate = 0.025  # Conservative 5%
-    # Define the base output directory
-    base_output_dir = "saham"
+def calculate_dcf(ticker_symbol, base_output_dir='saham', discount_rate=0.10, terminal_growth_rate=0.0225):
 
     # Define the output directory for the ticker
     output_dir = os.path.join(base_output_dir, ticker_symbol)
@@ -60,13 +56,13 @@ def calculate_dcf(ticker_symbol):
         append_message(f"Error reading data files: {e}")
         with open(output_filename, 'w') as f:
             f.write('\n'.join(output_messages))
-        sys.exit(1)
+        return
 
     if 'Free Cash Flow' not in df_cashflow.index:
         append_message(f"Error: 'Free Cash Flow' row not found in {cashflow_file}")
         with open(output_filename, 'w') as f:
             f.write('\n'.join(output_messages))
-        sys.exit(1)
+        return
 
     fcf_series = df_cashflow.loc['Free Cash Flow'].dropna()
 
@@ -164,8 +160,8 @@ def calculate_dcf(ticker_symbol):
         append_message("Cannot calculate current intrinsic value per share: Shares outstanding data not available or is zero.")
 
     append_message("\n--- Historical DCF Analysis ---")
-    append_message(f"{"Year":<6} {"Total Intrinsic Value":<25} {"Intrinsic Value Per Share":<30} {"Market Price":<15} {"Margin of Safety":<18}")
-    append_message(f"{"-"*6:<6} {"-"*25:<25} {"-"*30:<30} {"-"*15:<15} {"-"*18:<18}")
+    append_message(f'{"Year":<6} {"Total Intrinsic Value":<25} {"Intrinsic Value Per Share":<30} {"Market Price":<15} {"Margin of Safety":<18}')
+    append_message(f'{"-"*6:<6} {"-"*25:<25} {"-"*30:<30} {"-"*15:<15} {"-"*18:<18}')
 
     # Iterate through historical FCF data
     for date, fcf in fcf_series.items():
@@ -196,7 +192,7 @@ def calculate_dcf(ticker_symbol):
             historical_margin_of_safety = ((historical_intrinsic_value_per_share - market_price_for_year) / market_price_for_year) * 100
             historical_margin_of_safety = f"{historical_margin_of_safety:,.2f}%"
         
-        append_message(f"{year:<6} {historical_intrinsic_value_total:<25,.0f} {historical_intrinsic_value_per_share:<30,.2f} {(f'{market_price_for_year:,.2f}' if market_price_for_year is not None else 'N/A'):<15} {historical_margin_of_safety:<18}")
+        append_message(f'{year:<6} {historical_intrinsic_value_total:<25,.0f} {historical_intrinsic_value_per_share:<30,.2f} {(f"{market_price_for_year:,.2f}" if market_price_for_year is not None else "N/A"):<15} {historical_margin_of_safety:<18}')
 
     # Write all collected messages to the file at once
     with open(output_filename, 'w') as f:
@@ -205,10 +201,13 @@ def calculate_dcf(ticker_symbol):
     print(f"DCF analysis saved to {output_filename}")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python calculate_dcf.py <TICKER_SYMBOL>")
-        print("Example: python calculate_dcf.py SIDO.JK")
-        sys.exit(1)
-
-    ticker = sys.argv[1].upper()
-    calculate_dcf(ticker)
+    parser = argparse.ArgumentParser(description='Calculate DCF for a stock ticker based on previously fetched data.')
+    parser.add_argument('ticker_symbol', type=str, help='The ticker symbol of the stock (e.g., SIDO.JK)')
+    parser.add_argument('--dir', type=str, default='saham', help='The base directory where the ticker data is stored.')
+    parser.add_argument('--r', type=float, default=10.0, help='The discount rate percentage (e.g., 10 for 10%).')
+    parser.add_argument('--g', type=float, default=2.5, help='The terminal growth rate percentage (e.g., 2.5 for 2.5%).')
+    args = parser.parse_args()
+    ticker = args.ticker_symbol.upper()
+    discount_rate = args.r / 100.0
+    terminal_growth_rate = args.g / 100.0
+    calculate_dcf(ticker, args.dir, discount_rate, terminal_growth_rate)
